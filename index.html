@@ -20,7 +20,6 @@
             font-family: 'Inter', sans-serif;
         }
         .code-block {
-            /* Keep your existing background and color for the overall block */
             background-color: #2d3748; /* gray-800 */
             color: #e2e8f0; /* gray-300 */
             padding: 1rem;
@@ -29,13 +28,10 @@
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.875rem;
         }
-        /* Override Highlight.js background if necessary, or let it manage it */
         .code-block pre code {
-            /* Highlight.js will add its own background, so remove or adjust this if it conflicts */
             background: none; 
             padding: 0;
         }
-        /* Add word-wrap for table cells to prevent overflow */
         td {
             word-wrap: break-word;
             word-break: break-all;
@@ -104,15 +100,19 @@
                     <h2 class="text-xl font-bold text-white bg-gray-700 px-4 py-2 rounded-lg mb-4">Basic Usage Example</h2>
                     <div class="code-block">
                         <pre><code class="language-python">from djitellopy import Tello
+import time
+
 tello = Tello()
 
 tello.connect()
-print(tello.get_battery())
+print(f"Battery: {tello.get_battery()}%")
 
 tello.takeoff()
 tello.move_forward(50)
+time.sleep(2) # Wait for the movement to complete
 tello.land()
-tello.end()</code></pre>
+tello.end()
+</code></pre>
                     </div>
                 </section>
             </div>
@@ -177,17 +177,98 @@ tello.end()</code></pre>
                         </table>
                     </div>
                 </section>
-                
-                <section>
-                    <h2 class="text-xl font-bold text-white bg-indigo-500 px-4 py-2 rounded-lg mb-4">References</h2>
-                    <ul class="list-disc list-inside text-gray-700">
-                        <li><a href="https://djitellopy.readthedocs.io/en/latest/tello/" class="text-blue-600 hover:underline" target="_blank">DJITelloPy Official Documentation</a></li>
-                        <li><a href="https://github.com/damiafuentes/DJITelloPy" class="text-blue-600 hover:underline" target="_blank">DJITelloPy GitHub Repository</a></li>
-                        <li><a href="https://dl-cdn.ryzerobotics.com/downloads/Tello/Tello%20User%20Manual%20v1.4.pdf" class="text-blue-600 hover:underline" target="_blank">Tello User Manual</a></li>
-                    </ul>
-                </section>
             </div>
         </div>
+
+        <div class="mt-8 grid grid-cols-1 gap-8">
+            <section>
+                <h2 class="text-xl font-bold text-white bg-orange-600 px-4 py-2 rounded-lg mb-4">Tello & Computer Vision Example (Live Stream)</h2>
+                <p class="text-gray-700 mb-4">This example demonstrates how to capture live video frames from the Tello drone and display them using OpenCV. Remember to have OpenCV installed (<code>pip install opencv-python</code>).</p>
+                <div class="code-block">
+                    <pre><code class="language-python">import cv2
+from djitellopy import Tello
+import time
+
+tello = Tello()
+tello.connect()
+tello.streamon() # Start the video stream
+
+frame_read = tello.get_frame_read()
+
+while True:
+    # Read a frame from the stream
+    img = frame_read.frame
+
+    # Perform a simple image processing task (e.g., convert to grayscale)
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Display the original and processed frames
+    cv2.imshow("Tello Original Frame", img)
+    cv2.imshow("Tello Grayscale Frame", gray_img)
+
+    # Break the loop if 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Clean up
+tello.streamoff() # Stop the video stream
+tello.end()
+cv2.destroyAllWindows()
+</code></pre>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-xl font-bold text-white bg-pink-600 px-4 py-2 rounded-lg mb-4">Training a YOLO Model Example (Conceptual)</h2>
+                <p class="text-gray-700 mb-4">This is a conceptual example demonstrating the typical steps involved in training a YOLO (You Only Look Once) object detection model, often using a library like Ultralytics YOLO. Actual training requires a properly prepared dataset, configuration files, and significant computational resources. Data for training could potentially be collected by drones.</p>
+                <div class="code-block">
+                    <pre><code class="language-python"># Example using Ultralytics YOLOv8 (install with: pip install ultralytics)
+from ultralytics import YOLO
+
+# 1. Load a pre-trained YOLOv8n model (nano version, good starting point)
+#    You can also specify a custom .yaml file if training from scratch
+model = YOLO('yolov8n.pt') 
+
+# 2. Define the path to your dataset configuration file
+#    This YAML file specifies paths to your images, labels, and class names
+data_config_path = 'path/to/your/dataset.yaml' 
+
+# 3. Train the model
+#    'data': path to your dataset config
+#    'epochs': number of training epochs
+#    'imgsz': image size for training
+#    'batch': batch size
+#    'name': name for the training run results
+results = model.train(data=data_config_path, 
+                      epochs=100, 
+                      imgsz=640, 
+                      batch=16,
+                      name='custom_yolo_training_run')
+
+# 4. (Optional) Validate the trained model
+metrics = model.val() 
+
+# 5. (Optional) Export the model to a different format (e.g., ONNX, OpenVINO)
+#    This is useful for deployment
+model.export(format='onnx') 
+
+print("\nYOLO model training conceptual steps completed.")
+print("Remember: Real-world training requires data labeling, environment setup, and tuning.")
+</code></pre>
+                </div>
+            </section>
+        </div>
+
+        <section class="mt-8">
+            <h2 class="text-xl font-bold text-white bg-indigo-500 px-4 py-2 rounded-lg mb-4">References</h2>
+            <ul class="list-disc list-inside text-gray-700">
+                <li><a href="https://djitellopy.readthedocs.io/en/latest/" class="text-blue-600 hover:underline" target="_blank">DJITelloPy Official Documentation</a></li>
+                <li><a href="https://github.com/damiafuentes/DJITelloPy" class="text-blue-600 hover:underline" target="_blank">DJITelloPy GitHub Repository</a></li>
+                <li><a href="https://dl-cdn.ryzerobotics.com/downloads/Tello/Tello%20User%20Manual%20v1.4.pdf" class="text-blue-600 hover:underline" target="_blank">DJI Tello User Manual</a></li>
+                <li><a href="https://barhoomi.github.io/TellopyCheatsheet/" class="text-blue-600 hover:underline" target="_blank">DJI Tello Manual (Community Cheat Sheet)</a></li>
+                <li><a href="https://docs.ultralytics.com/yolov8/" class="text-blue-600 hover:underline" target="_blank">Ultralytics YOLOv8 Documentation (for YOLO example)</a></li>
+            </ul>
+        </section>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
